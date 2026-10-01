@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="color-scheme" content="dark" />
+<meta name="referrer" content="no-referrer" />
+<title>轨道播报舱 · ORBITAL NEWS POD</title>
+<link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+
+<main class="app" id="app">
+
+  <!-- ============ 外太空背景 ============ -->
+  <div class="space" id="space">
+    <canvas class="starfield" id="starfield" aria-hidden="true"></canvas>
+    <div class="nebula nebula--a" aria-hidden="true"></div>
+    <div class="nebula nebula--b" aria-hidden="true"></div>
+    <div class="nebula nebula--c" aria-hidden="true"></div>
+    <div class="orbit-line" aria-hidden="true"><span class="orbit-sat"></span></div>
+    <div class="planet" aria-hidden="true">
+      <span class="planet__body"></span>
+      <span class="planet__atmo"></span>
+      <span class="planet__ring"></span>
+    </div>
+  </div>
+
+  <!-- ============ 桌面 ============ -->
+  <section class="desk" aria-hidden="true">
+    <div class="desk__haze"></div>
+    <div class="desk__surface"></div>
+    <div class="desk__grid"></div>
+    <div class="desk__lip"></div>
+    <div class="desk__bloom"></div>
+  </section>
+
+  <!-- ============ 窗口外框 & 标题栏 ============ -->
+  <div class="chrome" aria-hidden="true"></div>
+
+  <header class="titlebar">
+    <div class="lights" aria-hidden="true">
+      <i class="light light--r"></i><i class="light light--y"></i><i class="light light--g"></i>
+    </div>
+    <div class="titlebar__title">
+      <span class="titlebar__name">轨道播报舱</span>
+      <span class="titlebar__sub">ORBITAL NEWS POD</span>
+    </div>
+    <div class="titlebar__tools">
+      <span class="live-pill"><i class="live-dot"></i>ON AIR</span>
+      <button class="tool" id="soundBtn" type="button" aria-pressed="false" title="开启 / 关闭播报音效">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="solid" d="M4 9.5h3.2L12 5.4v13.2L7.2 14.5H4z"/><path class="wave" d="M15.4 9.2a4 4 0 0 1 0 5.6"/><path class="wave" d="M18 6.8a7.4 7.4 0 0 1 0 10.4"/><path class="slash" d="M4 4l15 15"/></svg>
+        <span id="soundLabel">音效</span>
+      </button>
+      <button class="tool" id="fsBtn" type="button" title="全屏 / 退出全屏">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>
+        <span>全屏</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============ 左上 HUD ============ -->
+  <div class="hud">
+    <div class="hud__badge">
+      <i class="hud__pulse"></i>
+      <b>EARTH ONLINE</b>
+      <span>地球在线</span>
+    </div>
+    <div class="hud__clocks">
+      <div class="hud__clock">
+        <span id="clockUTC">--:--</span>
+        <small>UTC · 舱内</small>
+      </div>
+      <div class="hud__clock">
+        <span id="clockLocal">--:--</span>
+        <small id="dateLocal">北京时间</small>
+      </div>
+    </div>
+    <div class="hud__note" id="hudNote">今日晨报已就绪 · 8 个版块</div>
+  </div>
+
+  <!-- ============ 右上 圆环新闻版块 ============ -->
+  <section class="ring" id="ring" aria-label="新闻版块圆环">
+    <div class="ring__stage" id="ringStage"></div>
+    <div class="ring__foot">
+      <span class="ring__hint">拖动 / 滚轮 · 切换版块</span>
+      <div class="ring__dots" id="ringDots"></div>
+      <button class="ring__play" id="playBtn" type="button">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>
+        <span>播报</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ 太空播报机器人 ============ -->
+  <div class="robot" id="robot">
+    <div class="robot__float">
+      <figure class="bot">
+        <img class="bot__photo" src="./assets/podcast-bot.png" alt="太空播报机器人 BOT-Q" decoding="async">
+
+        <!-- 脚部浮空装置 -->
+        <span class="bot__beam" aria-hidden="true"></span>
+        <span class="bot__pool" aria-hidden="true"></span>
+        <span class="bot__halo" aria-hidden="true"></span>
+        <span class="bot__ripple" aria-hidden="true"></span>
+        <span class="bot__ripple bot__ripple--2" aria-hidden="true"></span>
+        <span class="bot__sparks" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+      </figure>
+    </div>
+
+    <div class="holo" id="holo">
+      <div class="holo__head">
+        <i class="holo__dot"></i>
+        <span class="holo__cat" id="holoCat">今日速览</span>
+        <span class="holo__tag" id="holoTag">STANDBY</span>
+      </div>
+      <p class="holo__line" id="holoLine">早安，这里是轨道播报舱。地球在线，信号满格。</p>
+      <div class="holo__meta" id="holoMeta">轨道通讯社 · 舱内时间</div>
+      <div class="holo__wave" id="holoWave" aria-hidden="true">
+        <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+      </div>
+      <span class="holo__scan" aria-hidden="true"></span>
+    </div>
+  </div>
+
+  <!-- ============ 桌面上的玻璃罐 + 浇水壶 ============ -->
+  <div class="shelf">
+    <button class="can" id="can" type="button" title="给小苗浇水">
+      <svg class="can__art" viewBox="0 0 210 170" role="img" aria-label="浇水壶">
+        <defs>
+          <linearGradient id="cwBody" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#eef4ff"/><stop offset=".38" stop-color="#c2cfe4"/>
+            <stop offset=".72" stop-color="#9aabc6"/><stop offset="1" stop-color="#6d7f9c"/>
+          </linearGradient>
+          <linearGradient id="cwCopper" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ffd9a0"/><stop offset=".5" stop-color="#e8a960"/>
+            <stop offset="1" stop-color="#a86a2c"/>
+          </linearGradient>
+          <linearGradient id="cwSpout" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#8fa1bd"/><stop offset=".5" stop-color="#d8e3f3"/>
+            <stop offset="1" stop-color="#9db0cb"/>
+          </linearGradient>
+        </defs>
+        <ellipse cx="112" cy="156" rx="56" ry="11" fill="#02060d" opacity=".55"/>
+        <ellipse cx="112" cy="156" rx="56" ry="11" fill="none" stroke="#7fe9ff" stroke-width="1" opacity=".18"/>
+        <!-- 壶身 -->
+        <path d="M84 84c0-6 4-10 10-10h42c6 0 10 4 10 10v52c0 9-6 15-15 15H99c-9 0-15-6-15-15z" fill="url(#cwBody)"/>
+        <path d="M84 100h56v10H84z" fill="url(#cwCopper)" opacity=".85"/>
+        <ellipse cx="112" cy="84" rx="31" ry="8" fill="#dfe9f8"/>
+        <ellipse cx="112" cy="84" rx="31" ry="8" fill="none" stroke="#ffffff" stroke-width="1" opacity=".5"/>
+        <ellipse cx="112" cy="83" rx="24" ry="5.4" fill="#5d6f8c" opacity=".55"/>
+        <!-- 提手 -->
+        <path d="M92 76c0-22 40-22 40 0" stroke="url(#cwBody)" stroke-width="9" fill="none" stroke-linecap="round"/>
+        <path d="M92 76c0-22 40-22 40 0" stroke="#ffffff" stroke-width="2" fill="none" stroke-linecap="round" opacity=".35"/>
+        <!-- 侧握把 -->
+        <path d="M140 96c16 2 20 14 20 24s-6 20-20 20" stroke="url(#cwBody)" stroke-width="8" fill="none" stroke-linecap="round"/>
+        <!-- 壶嘴 -->
+        <path d="M86 116c-24-4-42-18-56-40l9-6c14 20 30 30 50 33z" fill="url(#cwSpout)"/>
+        <path d="M84 118c-26-5-43-19-56-41" stroke="#ffffff" stroke-width="1.6" fill="none" opacity=".35"/>
+        <!-- 花洒 -->
+        <ellipse class="can__tip" cx="30" cy="72" rx="15" ry="10" transform="rotate(-24 30 72)" fill="#c6d3e7"/>
+        <ellipse cx="30" cy="72" rx="15" ry="10" transform="rotate(-24 30 72)" fill="none" stroke="#ffffff" stroke-width="1.2" opacity=".45"/>
+        <g fill="#7b8da8" opacity=".75">
+          <circle cx="24" cy="66" r="1.5"/><circle cx="30" cy="64" r="1.5"/><circle cx="36" cy="66" r="1.5"/>
+          <circle cx="22" cy="74" r="1.5"/><circle cx="30" cy="72" r="1.5"/><circle cx="38" cy="74" r="1.5"/>
+          <circle cx="25" cy="81" r="1.5"/><circle cx="33" cy="80" r="1.5"/>
+        </g>
+        <!-- 高光 -->
+        <path d="M92 96v40" stroke="#ffffff" stroke-width="4" opacity=".35" stroke-linecap="round"/>
+        <path d="M99 92v56" stroke="#ffffff" stroke-width="2" opacity=".2" stroke-linecap="round"/>
+      </svg>
+    </button>
+
+    <div class="jar" id="jar">
+      <svg class="jar__art" id="jarArt" viewBox="0 0 200 268" data-stage="0" role="img" aria-label="玻璃罐里的小植株">
+        <defs>
+          <linearGradient id="jrGlass" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#bfe9ff" stop-opacity=".30"/>
+            <stop offset=".18" stop-color="#ffffff" stop-opacity=".10"/>
+            <stop offset=".55" stop-color="#cfe9ff" stop-opacity=".05"/>
+            <stop offset=".86" stop-color="#ffffff" stop-opacity=".12"/>
+            <stop offset="1" stop-color="#a9d8f5" stop-opacity=".26"/>
+          </linearGradient>
+          <linearGradient id="jrWater" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#8fe6ff" stop-opacity=".30"/>
+            <stop offset="1" stop-color="#3aa8e0" stop-opacity=".14"/>
+          </linearGradient>
+          <linearGradient id="jrSoil" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#6b4a34"/><stop offset=".45" stop-color="#3f2b1e"/>
+            <stop offset="1" stop-color="#241811"/>
+          </linearGradient>
+          <linearGradient id="jrLeaf" x1="0" y1="1" x2="1" y2="0">
+            <stop offset="0" stop-color="#1f7a52"/><stop offset=".55" stop-color="#5fd394"/>
+            <stop offset="1" stop-color="#a7f2c4"/>
+          </linearGradient>
+          <linearGradient id="jrLeaf2" x1="1" y1="1" x2="0" y2="0">
+            <stop offset="0" stop-color="#176b46"/><stop offset=".6" stop-color="#48c584"/>
+            <stop offset="1" stop-color="#93edb6"/>
+          </linearGradient>
+          <radialGradient id="jrShadow">
+            <stop offset="0" stop-color="#01040a" stop-opacity=".7"/>
+            <stop offset="1" stop-color="#01040a" stop-opacity="0"/>
+          </radialGradient>
+          <radialGradient id="jrCaustic">
+            <stop offset="0" stop-color="#bff0ff" stop-opacity=".55"/>
+            <stop offset="1" stop-color="#bff0ff" stop-opacity="0"/>
+          </radialGradient>
+          <clipPath id="jrClip">
+            <path d="M44 104v104c0 26 24 38 56 38s56-12 56-38V104z"/>
+          </clipPath>
+        </defs>
+
+        <ellipse cx="100" cy="250" rx="72" ry="15" fill="url(#jrShadow)"/>
+
+        <g clip-path="url(#jrClip)">
+          <!-- 土壤 -->
+          <ellipse cx="100" cy="212" rx="58" ry="20" fill="url(#jrSoil)"/>
+          <path d="M46 210c10-14 34-20 54-20s44 6 54 20c-16 10-88 10-108 0z" fill="#5a3d29" opacity=".8"/>
+
+          <!-- 水（湿润度上升时水面升高） -->
+          <rect class="jr-water" x="40" y="212" width="120" height="44" fill="url(#jrWater)"/>
+          <ellipse class="jr-caustic" cx="100" cy="238" rx="50" ry="13" fill="url(#jrCaustic)"/>
+
+          <!-- 小植株 -->
+          <g class="jr-plant">
+            <path d="M100 214v-52" stroke="#3f9d6b" stroke-width="5" stroke-linecap="round"/>
+            <path d="M100 176c-18-2-30-14-30-30 18 0 30 12 30 30z" fill="url(#jrLeaf)"/>
+            <path d="M100 168c16-4 26-16 25-30-17 2-27 14-25 30z" fill="url(#jrLeaf2)"/>
+            <path d="M100 200c-13 0-22-8-23-18 13-1 22 6 23 18z" fill="url(#jrLeaf)" opacity=".9"/>
+            <path d="M100 196c12-2 20-9 21-19-12 0-20 7-21 19z" fill="url(#jrLeaf2)" opacity=".85"/>
+            <path class="jr-leaf-new" d="M100 158c2-13 12-21 23-20-1 12-11 20-23 20z" fill="url(#jrLeaf2)"/>
+            <circle class="jr-bud" cx="100" cy="156" r="4.5" fill="#b7f7cf"/>
+          </g>
+
+          <!-- 反光 -->
+          <ellipse cx="100" cy="246" rx="54" ry="12" fill="#9fe8ff" opacity=".12"/>
+        </g>
+
+        <!-- 玻璃体 -->
+        <path d="M44 104v104c0 26 24 38 56 38s56-12 56-38V104z" fill="url(#jrGlass)" stroke="rgba(214,240,255,.42)" stroke-width="1.6"/>
+        <!-- 瓶口 -->
+        <rect x="38" y="92" width="124" height="16" rx="8" fill="rgba(226,246,255,.14)" stroke="rgba(226,246,255,.45)" stroke-width="1.4"/>
+        <ellipse cx="100" cy="92" rx="62" ry="10" fill="none" stroke="rgba(255,255,255,.5)" stroke-width="1.4"/>
+        <ellipse cx="100" cy="92" rx="55" ry="7.4" fill="rgba(4,12,24,.55)"/>
+        <ellipse cx="100" cy="92" rx="55" ry="7.4" fill="none" stroke="#7fe9ff" stroke-width="1" opacity=".28"/>
+        <!-- 高光 / 冰蓝边光 -->
+        <path d="M56 112v92" stroke="#ffffff" stroke-width="7" opacity=".20" stroke-linecap="round"/>
+        <path d="M64 108v104" stroke="#ffffff" stroke-width="3" opacity=".14" stroke-linecap="round"/>
+        <path d="M146 116v84" stroke="#ffffff" stroke-width="5" opacity=".13" stroke-linecap="round"/>
+        <path d="M44 110v92" stroke="#8fe9ff" stroke-width="2.4" opacity=".5" stroke-linecap="round"/>
+        <path d="M156 120v72" stroke="#ffca7a" stroke-width="2" opacity=".26" stroke-linecap="round"/>
+        <ellipse cx="100" cy="246" rx="44" ry="8" fill="none" stroke="#ffffff" stroke-width="1" opacity=".18"/>
+
+        <!-- 浇水闪光 -->
+        <g class="jr-sparkles" fill="#c9ffe4" opacity="0">
+          <path d="M88 150l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/>
+          <path d="M116 142l1.5 5 5 1.5-5 1.5-1.5 5-1.5-5-5-1.5 5-1.5z"/>
+          <path d="M100 128l1.2 4 4 1.2-4 1.2-1.2 4-1.2-4-4-1.2 4-1.2z"/>
+        </g>
+      </svg>
+      <div class="jar__tag" id="jarTag">小苗 · 湿润度 42%</div>
+    </div>
+  </div>
+
+  <div class="water-layer" id="waterLayer" aria-hidden="true"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</main>
+
+<script src="./app.js"></script>
+</body>
+</html>
