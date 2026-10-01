@@ -2,11 +2,11 @@
 
 一个全屏的"太空播报舱"网页：外太空背景、舱内桌面、桌面右侧的玻璃罐小苗与浇水壶、左侧漂浮的太空播报机器人，以及右上角横向圆环式的新闻版块交互。
 
-## 怎么打开
+## 怎么访问
 
-- 直接双击 `index.html`（无需联网即可打开界面；版块配图需要联网）
-- 或开启 GitHub Pages：仓库 Settings → Pages → Source 选 `Deploy from a branch`，分支 `main`、目录 `/ (root)`，之后用 `https://DDD494.github.io/duans/` 访问
-- 想单独分享一个文件，用 `standalone.html`（样式与脚本已内联）
+- **在线访问**：<https://DDD494.github.io/duans/>（GitHub Pages 已开启，推送到 `main` 后自动更新）
+- 本地打开：双击 `index.html`（界面无需联网，版块配图需要联网）
+- 想单独分享一个文件：用 `standalone.html`（样式与脚本已内联）
 
 ## 文件结构
 
