@@ -15,8 +15,9 @@
   --fw:clamp(18px, 2.2vh, 28px);
   --frame:0px;
   --ring-scale:1;
-  /* 摆件尺寸：水壶等比例缩到植株高度的 2/3 */
-  --jar-w:clamp(104px, 10.4vw, 168px);
+  /* 摆件尺寸：植株比原始尺寸小 1/6；水壶等比例缩到植株高度的 2/3 */
+  --jar-scale:0.8333;
+  --jar-w:calc(clamp(104px, 10.4vw, 168px) * var(--jar-scale));
   --can-w:calc(var(--jar-w) * 0.372);
   --pour-lift:60px;
   --font:"PingFang SC","Microsoft YaHei","Noto Sans SC",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
