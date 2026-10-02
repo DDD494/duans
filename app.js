@@ -713,6 +713,12 @@
     if (watering) return;
     watering = true;
     lastInteract = Date.now();
+    // 抬升高度：让水壶大约有一半壶身高出植株顶部
+    // offsetHeight 不受 transform 影响，取的是真实布局高度
+    const canH = can.offsetHeight || can.getBoundingClientRect().height;
+    const jarH = jar.offsetHeight || jar.getBoundingClientRect().height;
+    const lift = Math.max(24, jarH - canH * 0.5);
+    can.style.setProperty('--pour-lift', lift.toFixed(1) + 'px');
     can.classList.add('is-pouring');
     jar.classList.add('is-watering');
     sfxWater();
