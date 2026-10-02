@@ -560,6 +560,26 @@
     });
   }
 
+  // 浇水壶 / 小植株：优先用 assets 里的图片，找不到就自动退回内置矢量图
+  const PROP_FILES = {
+    canPhoto: ['shuihu.jpg', 'shuihu.png', 'shuihu.jpeg', 'shuihu.webp', 'shuihu.jpd'],
+    jarPhoto: ['zhizhu.jpg', 'zhizhu.png', 'zhizhu.jpeg', 'zhizhu.webp', 'zhizhu.jpd']
+  };
+  Object.keys(PROP_FILES).forEach((id) => {
+    const img = $('#' + id);
+    if (!img) return;
+    const wrap = img.closest ? img.closest('.can, .jar') : null;
+    const files = PROP_FILES[id];
+    let i = 0;
+    const tryNext = () => {
+      if (i >= files.length) { if (img.remove) img.remove(); return; }
+      img.src = './assets/' + files[i++];
+    };
+    img.addEventListener('load', () => { if (wrap && wrap.classList) wrap.classList.add('has-photo'); });
+    img.addEventListener('error', tryNext);
+    tryNext();
+  });
+
   let speakId = 0;
   let speaking = false;
 
@@ -697,13 +717,14 @@
     jar.classList.add('is-watering');
     sfxWater();
 
-    const tip = $('.can__tip').getBoundingClientRect();
+    const canRect = can.getBoundingClientRect();
     const jr = jar.getBoundingClientRect();
     const appRect = $('#app').getBoundingClientRect();
-    const fromX = tip.left + tip.width * 0.5 - appRect.left;
-    const fromY = tip.top + tip.height * 0.5 - appRect.top;
+    // 壶嘴位置（无论用图片还是内置矢量图，都取左上角作为出水口）
+    const fromX = canRect.left + canRect.width * 0.10 - appRect.left;
+    const fromY = canRect.top + canRect.height * 0.22 - appRect.top;
     const toX = jr.left + jr.width * 0.5 - appRect.left;
-    const toY = jr.top + jr.height * 0.80 - appRect.top;
+    const toY = jr.top + jr.height * 0.74 - appRect.top;
 
     for (let i = 0; i < 9; i++) {
       dropFly(fromX, fromY, toX + (Math.random() * 18 - 9), toY, 120 + i * 85);

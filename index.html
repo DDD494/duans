@@ -26,17 +26,19 @@
     </div>
   </div>
 
-  <!-- ============ 桌面 ============ -->
-  <section class="desk" aria-hidden="true">
-    <div class="desk__haze"></div>
-    <div class="desk__surface"></div>
-    <div class="desk__grid"></div>
-    <div class="desk__lip"></div>
-    <div class="desk__bloom"></div>
-  </section>
-
-  <!-- ============ 窗口外框 & 标题栏 ============ -->
-  <div class="chrome" aria-hidden="true"></div>
+  <!-- ============ 机械科技风边框 ============ -->
+  <div class="frame" aria-hidden="true">
+    <span class="frame__bar frame__bar--t"></span>
+    <span class="frame__bar frame__bar--b"></span>
+    <span class="frame__bar frame__bar--l"></span>
+    <span class="frame__bar frame__bar--r"></span>
+    <span class="frame__inner"></span>
+    <span class="frame__corner frame__corner--tl"><i></i><i></i></span>
+    <span class="frame__corner frame__corner--tr"><i></i><i></i></span>
+    <span class="frame__corner frame__corner--bl"><i></i><i></i></span>
+    <span class="frame__corner frame__corner--br"><i></i><i></i></span>
+    <span class="frame__leds"><i></i><i></i><i></i><i></i></span>
+  </div>
 
   <header class="titlebar">
     <div class="lights" aria-hidden="true">
@@ -123,9 +125,10 @@
     </div>
   </div>
 
-  <!-- ============ 桌面上的玻璃罐 + 浇水壶 ============ -->
+  <!-- ============ 边框底边右侧：浇水壶 + 小植株 ============ -->
   <div class="shelf">
     <button class="can" id="can" type="button" title="给小苗浇水">
+      <img class="prop__photo" id="canPhoto" src="./assets/shuihu.jpg" alt="浇水壶" decoding="async">
       <svg class="can__art" viewBox="0 0 210 170" role="img" aria-label="浇水壶">
         <defs>
           <linearGradient id="cwBody" x1="0" y1="0" x2="1" y2="1">
@@ -172,6 +175,7 @@
     </button>
 
     <div class="jar" id="jar">
+      <img class="prop__photo" id="jarPhoto" src="./assets/zhizhu.jpg" alt="小植株" decoding="async">
       <svg class="jar__art" id="jarArt" viewBox="0 0 200 268" data-stage="0" role="img" aria-label="玻璃罐里的小植株">
         <defs>
           <linearGradient id="jrGlass" x1="0" y1="0" x2="1" y2="0">
