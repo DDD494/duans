@@ -717,18 +717,20 @@
     jar.classList.add('is-watering');
     sfxWater();
 
-    const canRect = can.getBoundingClientRect();
-    const jr = jar.getBoundingClientRect();
-    const appRect = $('#app').getBoundingClientRect();
-    // 壶嘴位置（无论用图片还是内置矢量图，都取左上角作为出水口）
-    const fromX = canRect.left + canRect.width * 0.10 - appRect.left;
-    const fromY = canRect.top + canRect.height * 0.22 - appRect.top;
-    const toX = jr.left + jr.width * 0.5 - appRect.left;
-    const toY = jr.top + jr.height * 0.74 - appRect.top;
-
-    for (let i = 0; i < 9; i++) {
-      dropFly(fromX, fromY, toX + (Math.random() * 18 - 9), toY, 120 + i * 85);
-    }
+    // 等壶身抬起、向右倾倒到位后再取点：
+    // getBoundingClientRect 会带上 transform，所以拿到的是倾斜后的真实位置
+    setTimeout(() => {
+      const canRect = can.getBoundingClientRect();
+      const jr = jar.getBoundingClientRect();
+      const appRect = $('#app').getBoundingClientRect();
+      const fromX = canRect.left + canRect.width * 0.80 - appRect.left;
+      const fromY = canRect.top + canRect.height * 0.10 - appRect.top;
+      const toX = jr.left + jr.width * 0.5 - appRect.left;
+      const toY = jr.top + jr.height * 0.62 - appRect.top;
+      for (let i = 0; i < 9; i++) {
+        dropFly(fromX, fromY, toX + (Math.random() * 18 - 9), toY, i * 85);
+      }
+    }, 200);
 
     setTimeout(() => {
       moisture = clamp(moisture + 18, 0, 96);
@@ -761,7 +763,7 @@
           holoTag.textContent = 'STANDBY';
         }, 2800);
       });
-    }, 760);
+    }, 950);
 
     setTimeout(() => {
       can.classList.remove('is-pouring');

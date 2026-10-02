@@ -658,13 +658,14 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
   transition:transform .35s cubic-bezier(.2,.8,.3,1.2), filter .3s ease;
   filter:drop-shadow(0 18px 20px rgba(0,0,0,.5));
 }
-.can:hover{transform:translateY(-4px) rotate(-2deg);}
-.can.is-pouring{animation:pour 1.35s ease-in-out;}
+.can:hover{transform:translateY(-5px) rotate(3deg);}
+.can.is-pouring{animation:pour 1.4s ease-in-out;}
 @keyframes pour{
-  0%{transform:rotate(0) translateY(0);}
-  22%{transform:rotate(-16deg) translateY(-6px);}
-  55%{transform:rotate(-16deg) translateY(-6px);}
-  100%{transform:rotate(0) translateY(0);}
+  0%{transform:translate(0,0) rotate(0deg);}
+  18%{transform:translate(6px,-14px) rotate(18deg);}
+  62%{transform:translate(6px,-14px) rotate(18deg);}
+  84%{transform:translate(2px,-6px) rotate(8deg);}
+  100%{transform:translate(0,0) rotate(0deg);}
 }
 .can__art{width:100%;height:auto;display:block;}
 
@@ -1745,18 +1746,20 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
     jar.classList.add('is-watering');
     sfxWater();
 
-    const canRect = can.getBoundingClientRect();
-    const jr = jar.getBoundingClientRect();
-    const appRect = $('#app').getBoundingClientRect();
-    // 壶嘴位置（无论用图片还是内置矢量图，都取左上角作为出水口）
-    const fromX = canRect.left + canRect.width * 0.10 - appRect.left;
-    const fromY = canRect.top + canRect.height * 0.22 - appRect.top;
-    const toX = jr.left + jr.width * 0.5 - appRect.left;
-    const toY = jr.top + jr.height * 0.74 - appRect.top;
-
-    for (let i = 0; i < 9; i++) {
-      dropFly(fromX, fromY, toX + (Math.random() * 18 - 9), toY, 120 + i * 85);
-    }
+    // 等壶身抬起、向右倾倒到位后再取点：
+    // getBoundingClientRect 会带上 transform，所以拿到的是倾斜后的真实位置
+    setTimeout(() => {
+      const canRect = can.getBoundingClientRect();
+      const jr = jar.getBoundingClientRect();
+      const appRect = $('#app').getBoundingClientRect();
+      const fromX = canRect.left + canRect.width * 0.80 - appRect.left;
+      const fromY = canRect.top + canRect.height * 0.10 - appRect.top;
+      const toX = jr.left + jr.width * 0.5 - appRect.left;
+      const toY = jr.top + jr.height * 0.62 - appRect.top;
+      for (let i = 0; i < 9; i++) {
+        dropFly(fromX, fromY, toX + (Math.random() * 18 - 9), toY, i * 85);
+      }
+    }, 200);
 
     setTimeout(() => {
       moisture = clamp(moisture + 18, 0, 96);
@@ -1789,7 +1792,7 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
           holoTag.textContent = 'STANDBY';
         }, 2800);
       });
-    }, 760);
+    }, 950);
 
     setTimeout(() => {
       can.classList.remove('is-pouring');
