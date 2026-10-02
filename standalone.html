@@ -645,16 +645,15 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
 
 /* assets 里有图就显示图片，没有就显示内置矢量图 */
 .prop__photo{
-  display:none;width:100%;height:auto;border-radius:8px;
-  -webkit-mask-image:linear-gradient(180deg,#000 76%,rgba(0,0,0,.2) 100%);
-  mask-image:linear-gradient(180deg,#000 76%,rgba(0,0,0,.2) 100%);
+  display:none;width:100%;height:auto;
+  filter:drop-shadow(0 12px 16px rgba(0,0,0,.6));
 }
 .can.has-photo .prop__photo,.jar.has-photo .prop__photo{display:block;}
 .can.has-photo .can__art,.jar.has-photo .jar__art{display:none;}
 
 .can{
   position:relative;
-  width:clamp(84px, 8.4vw, 132px);
+  width:clamp(66px, 6.6vw, 100px);
   transform-origin:78% 92%;
   transition:transform .35s cubic-bezier(.2,.8,.3,1.2), filter .3s ease;
   filter:drop-shadow(0 18px 20px rgba(0,0,0,.5));
@@ -671,7 +670,7 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
 
 .jar{
   position:relative;
-  width:clamp(104px, 10.4vw, 168px);
+  width:clamp(110px, 11vw, 172px);
   filter:drop-shadow(0 22px 26px rgba(0,0,0,.55));
 }
 .jar__art{width:100%;height:auto;display:block;}
@@ -1591,8 +1590,8 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
 
   // 浇水壶 / 小植株：优先用 assets 里的图片，找不到就自动退回内置矢量图
   const PROP_FILES = {
-    canPhoto: ['shuihu.jpg', 'shuihu.png', 'shuihu.jpeg', 'shuihu.webp', 'shuihu.jpd'],
-    jarPhoto: ['zhizhu.jpg', 'zhizhu.png', 'zhizhu.jpeg', 'zhizhu.webp', 'zhizhu.jpd']
+    canPhoto: ['shuihu-cut.png', 'shuihu-cut.jpg', 'shuihu.png', 'shuihu.jpg', 'shuihu.jpeg', 'shuihu.webp', 'shuihu.jpd'],
+    jarPhoto: ['zhizhu-cut.png', 'zhizhu-cut.jpg', 'zhizhu.png', 'zhizhu.jpg', 'zhizhu.jpeg', 'zhizhu.webp', 'zhizhu.jpd']
   };
   Object.keys(PROP_FILES).forEach((id) => {
     const img = $('#' + id);

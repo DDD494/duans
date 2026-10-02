@@ -562,8 +562,8 @@
 
   // 浇水壶 / 小植株：优先用 assets 里的图片，找不到就自动退回内置矢量图
   const PROP_FILES = {
-    canPhoto: ['shuihu.jpg', 'shuihu.png', 'shuihu.jpeg', 'shuihu.webp', 'shuihu.jpd'],
-    jarPhoto: ['zhizhu.jpg', 'zhizhu.png', 'zhizhu.jpeg', 'zhizhu.webp', 'zhizhu.jpd']
+    canPhoto: ['shuihu-cut.png', 'shuihu-cut.jpg', 'shuihu.png', 'shuihu.jpg', 'shuihu.jpeg', 'shuihu.webp', 'shuihu.jpd'],
+    jarPhoto: ['zhizhu-cut.png', 'zhizhu-cut.jpg', 'zhizhu.png', 'zhizhu.jpg', 'zhizhu.jpeg', 'zhizhu.webp', 'zhizhu.jpd']
   };
   Object.keys(PROP_FILES).forEach((id) => {
     const img = $('#' + id);
