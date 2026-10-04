@@ -1649,6 +1649,7 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
 
   const TEX_W = 2560, TEX_H = 1280;     // 地表贴图（球面取样，配合高分辨率渲染）
   const CLD_W = 1280, CLD_H = 640;      // 云层贴图
+  const EARTH_DRAG_GAIN = 1.8;          // 拖动灵敏度：1 = 完全 1:1 跟手，数值越大同样距离转得越多
   const LIGHT = (() => {                 // 光照方向（屏幕坐标：x 右、y 下、z 朝观察者）
     const l = [-0.42, -0.52, 0.75];
     const n = Math.hypot(l[0], l[1], l[2]);
@@ -1829,7 +1830,7 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
       if (!earthDragging) return;
       const dx = e.clientX - earthLastX;
       earthLastX = e.clientX;
-      const d = -dx * earthRotPerPx;              // 向右拖 → 表面右移
+      const d = -dx * earthRotPerPx * EARTH_DRAG_GAIN;   // 向右拖 → 表面右移
       earthRot += d;
       earthVel = clamp(d, -60, 60);
       applyEarth();

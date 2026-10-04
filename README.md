@@ -59,7 +59,7 @@ assets/
 - 渲染分辨率：`app.js` 的 `sizeEarthCanvas()`（当前 `clamp(球体宽 × DPR × 1.15, 420, 900)`，即在高分屏上按设备像素超采样，最高 900×900）
 - 地球初始朝向：`app.js` 里的 `EARTH_ROT0`（当前 13° ≈ 正对东经 13°，非洲/大西洋）
 - 3D 渲染：`app.js` 的「四·五」段——`buildEarthTables()` 预计算每个像素的贴图坐标/光照，`renderEarth()` 逐帧取样；`TEX_W/TEX_H`、`CLD_W/CLD_H` 是取样用的贴图分辨率，`LIGHT` 是光照方向，`0.13 + 0.95 * max(0, dot)` 是明暗曲线
-- 拖动灵敏度与惯性：拖动时 `earthRot -= dx * earthRotPerPx`，主循环里 `earthVel *= Math.pow(0.935, …)` 做阻尼
+- 拖动灵敏度与惯性：`EARTH_DRAG_GAIN`（当前 1.8，1 = 完全 1:1 跟手，越大转得越多）；主循环里 `earthVel *= Math.pow(0.935, …)` 做阻尼
 - 回退方案：`file://` 本地打开时画布可能被浏览器安全策略限制，会自动退回 `.earth__tex/.earth__cloud` 的贴图滚动方案（见 `initEarth3D` 失败分支）
 - 机械边框粗细：`:root` 里的 `--fw`
 - 摆件尺寸：`:root` 里的 `--jar-scale`（植株缩放）、`--can-w`（水壶，按植株比例算）
