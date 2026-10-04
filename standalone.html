@@ -128,26 +128,52 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
   100%{left:98%;opacity:0;}
 }
 
-.planet{position:absolute;right:-16vw;bottom:-18vh;width:78vh;height:78vh;z-index:1;pointer-events:none;}
-.planet__body{
+/* ---------- 地球：NASA 卫星贴图 + 横向滚动模拟自转 ----------
+   球体直径 250vh，屏幕只露出顶部约 40vh（地平线弧）。
+   贴图横向 2×球宽（360° 经度），纵向 120%（把南北纬压扁一点，像是俯视球面），
+   定位让画面顶边落在贴图 22% 处 = 北纬约 50°，所以看到的是中纬度大陆，不是极地。 */
+.earth{
+  position:absolute;left:50%;bottom:-210vh;
+  width:250vh;height:250vh;margin-left:-125vh;
+  z-index:1;pointer-events:none;
+}
+.earth__ball{
+  position:absolute;inset:0;border-radius:50%;overflow:hidden;
+  background:#061024;
+}
+.earth__tex,.earth__cloud{
+  position:absolute;left:0;top:0;width:400%;height:100%;
+  background-repeat:repeat-x;
+  background-size:50% 120%;
+  background-position:0% 133%;
+  will-change:transform;
+  animation:earthSlide 320s linear infinite;
+}
+.earth__tex{background-image:url('./assets/earth-map.jpg');}
+.earth__cloud{
+  background-image:url('./assets/earth-clouds.png');
+  opacity:.5;mix-blend-mode:screen;
+  animation-duration:255s;
+}
+/* 一次滚动恰好等于一张贴图宽度，无缝循环 */
+@keyframes earthSlide{
+  from{transform:translate3d(0,0,0);}
+  to{transform:translate3d(-50%,0,0);}
+}
+.earth__shade{
   position:absolute;inset:0;border-radius:50%;
   background:
-    radial-gradient(circle at 32% 24%, #5570b4 0%, #2b3d76 34%, #16204a 62%, #090e22 100%);
+    radial-gradient(120% 90% at 30% 20%, rgba(200,235,255,.16), transparent 46%),
+    linear-gradient(180deg, rgba(3,8,20,.04) 0%, rgba(3,8,20,.22) 14%, rgba(2,6,16,.62) 46%, rgba(1,4,12,.88) 100%);
   box-shadow:
-    inset -40px -30px 110px rgba(0,0,0,.72),
-    inset 26px 20px 80px rgba(150,205,255,.20),
-    0 0 140px rgba(80,140,255,.18);
-  opacity:.92;
+    inset 0 3vh 8vh -2vh rgba(170,225,255,.45),
+    inset -34vh -38vh 70vh rgba(0,0,10,.9),
+    inset 18vh 20vh 46vh rgba(90,160,255,.10);
 }
-.planet__atmo{
-  position:absolute;inset:-4%;border-radius:50%;
-  background:radial-gradient(circle, transparent 60%, rgba(140,205,255,.30) 70%, transparent 80%);
-  filter:blur(6px);
-}
-.planet__ring{
-  position:absolute;left:-26%;top:40%;width:152%;height:26%;
-  border-radius:50%;border:1px solid rgba(180,220,255,.22);
-  transform:rotate(-15deg);
+.earth__atmo{
+  position:absolute;inset:-2%;border-radius:50%;
+  background:radial-gradient(circle, transparent 68%, rgba(120,200,255,.34) 76%, rgba(90,170,255,.12) 82%, transparent 90%);
+  filter:blur(16px);
 }
 
 /* ---------- 机械科技风边框 ---------- */
@@ -200,7 +226,8 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
   box-shadow:
     inset 0 0 0 1px rgba(150,210,255,.18),
     inset 0 0 30px rgba(0,0,0,.6),
-    inset 0 0 70px rgba(20,60,140,.16);
+    inset 0 0 70px rgba(20,60,140,.16),
+    inset 0 -14vh 26vh -8vh rgba(0,0,0,.72);
 }
 
 .frame__corner{
@@ -779,12 +806,18 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
     <div class="nebula nebula--a" aria-hidden="true"></div>
     <div class="nebula nebula--b" aria-hidden="true"></div>
     <div class="nebula nebula--c" aria-hidden="true"></div>
-    <div class="orbit-line" aria-hidden="true"><span class="orbit-sat"></span></div>
-    <div class="planet" aria-hidden="true">
-      <span class="planet__body"></span>
-      <span class="planet__atmo"></span>
-      <span class="planet__ring"></span>
+
+    <!-- ============ 地球（卫星贴图 · 自转） ============ -->
+    <div class="earth" aria-hidden="true">
+      <div class="earth__ball">
+        <div class="earth__tex"></div>
+        <div class="earth__cloud"></div>
+      </div>
+      <div class="earth__shade"></div>
+      <div class="earth__atmo"></div>
     </div>
+
+    <div class="orbit-line" aria-hidden="true"><span class="orbit-sat"></span></div>
   </div>
 
   <!-- ============ 机械科技风边框 ============ -->
@@ -1957,14 +1990,14 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
     setTimeout(() => jar.classList.remove('show-tag'), 5200);
 
     // 视差
-    const planet = $('.planet');
+    const earth = $('.earth');
     const orbit = $('.orbit-line');
     $('#app').addEventListener('pointermove', (e) => {
       const r = $('#app').getBoundingClientRect();
       const nx = (e.clientX - r.left) / r.width - 0.5;
       const ny = (e.clientY - r.top) / r.height - 0.5;
-      planet.style.transform = `translate3d(${(-nx * 26).toFixed(1)}px,${(-ny * 18).toFixed(1)}px,0)`;
-      orbit.style.transform = `rotate(-7deg) translate3d(${(-nx * 14).toFixed(1)}px,0,0)`;
+      if (earth) earth.style.transform = `translate3d(${(-nx * 20).toFixed(1)}px,${(-ny * 10).toFixed(1)}px,0)`;
+      if (orbit) orbit.style.transform = `rotate(-7deg) translate3d(${(-nx * 14).toFixed(1)}px,0,0)`;
     });
 
     // 开场提示

@@ -923,14 +923,14 @@
     setTimeout(() => jar.classList.remove('show-tag'), 5200);
 
     // 视差
-    const planet = $('.planet');
+    const earth = $('.earth');
     const orbit = $('.orbit-line');
     $('#app').addEventListener('pointermove', (e) => {
       const r = $('#app').getBoundingClientRect();
       const nx = (e.clientX - r.left) / r.width - 0.5;
       const ny = (e.clientY - r.top) / r.height - 0.5;
-      planet.style.transform = `translate3d(${(-nx * 26).toFixed(1)}px,${(-ny * 18).toFixed(1)}px,0)`;
-      orbit.style.transform = `rotate(-7deg) translate3d(${(-nx * 14).toFixed(1)}px,0,0)`;
+      if (earth) earth.style.transform = `translate3d(${(-nx * 20).toFixed(1)}px,${(-ny * 10).toFixed(1)}px,0)`;
+      if (orbit) orbit.style.transform = `rotate(-7deg) translate3d(${(-nx * 14).toFixed(1)}px,0,0)`;
     });
 
     // 开场提示
