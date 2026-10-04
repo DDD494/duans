@@ -136,18 +136,23 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
   100%{left:98%;opacity:0;}
 }
 
-/* ---------- 地球：NASA 卫星贴图 + 横向滚动模拟自转 ----------
+/* ---------- 地球：NASA 卫星贴图，手动拖动旋转 ----------
    整个球体完整显示、屏幕正中间（类似 Google Earth 的全球视角）。
    贴图横向 2×球宽（360° 经度）、纵向 1×球高（南北纬 90°~-90°），
-   background-position-x: -28.6% 让初始正对约东经 13°（非洲/大西洋）。 */
+   background-position-x: -28.6% 让初始正对约东经 13°（非洲/大西洋）。
+   自转由 app.js 里拖动地球的位移（transform）驱动，不再自动播放。 */
 .earth{
   --globe:clamp(320px, 62vh, 760px);
   position:absolute;
   left:calc(50% - var(--globe) / 2);
   top:calc(50% - var(--globe) / 2);
   width:var(--globe);height:var(--globe);
-  z-index:1;pointer-events:none;
+  z-index:1;
+  pointer-events:auto;cursor:grab;
+  touch-action:none;
+  -webkit-user-select:none;user-select:none;
 }
+.earth.is-dragging{cursor:grabbing;}
 .earth__ball{
   position:absolute;inset:0;border-radius:50%;overflow:hidden;
   background:#061024;
@@ -158,7 +163,6 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
   background-size:50% 100%;
   background-position:0% 0%;
   will-change:transform;
-  animation:earthSlide 110s linear infinite;
 }
 .earth__tex{
   background-image:url('./assets/earth-map.jpg');
@@ -168,12 +172,6 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
   background-image:url('./assets/earth-clouds.png');
   background-position-x:-18%;
   opacity:.85;
-  animation-duration:88s;
-}
-/* 一次滚动恰好等于一张贴图宽度，无缝循环 */
-@keyframes earthSlide{
-  from{transform:translate3d(0,0,0);}
-  to{transform:translate3d(-50%,0,0);}
 }
 .earth__shade{
   position:absolute;inset:0;border-radius:50%;
@@ -1628,6 +1626,61 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
   });
 
   /* ---------------------------------------------------------
+     四·五、地球：手动拖动旋转（带惯性，横向无缝循环）
+     --------------------------------------------------------- */
+  const earthEl = $('.earth');
+  const earthTex = $('.earth__tex');
+  const earthCloud = $('.earth__cloud');
+  let earthX = 0;            // 当前横向位移（px，正数 = 贴图向右）
+  let earthVel = 0;          // 松手后的惯性（px / 帧@60fps）
+  let earthDragging = false;
+  let earthLastX = 0;
+
+  // 一张贴图 = 2×球宽 = 360° 经度
+  function earthTile() {
+    const w = earthEl ? earthEl.getBoundingClientRect().width : 0;
+    return Math.max(1, w * 2);
+  }
+
+  function applyEarth() {
+    if (!earthTex) return;
+    const t = earthTile();
+    const tx = ((earthX % t) + t) % t - t;      // 归一化到 [-t, 0)，保证球面始终被铺满
+    const str = `translate3d(${tx.toFixed(2)}px,0,0)`;
+    earthTex.style.transform = str;
+    if (earthCloud) earthCloud.style.transform = str;
+  }
+
+  if (earthEl) {
+    earthEl.addEventListener('pointerdown', (e) => {
+      earthDragging = true;
+      earthVel = 0;
+      earthLastX = e.clientX;
+      earthEl.classList.add('is-dragging');
+      if (earthEl.setPointerCapture) earthEl.setPointerCapture(e.pointerId);
+    });
+    earthEl.addEventListener('pointermove', (e) => {
+      if (!earthDragging) return;
+      const dx = e.clientX - earthLastX;
+      earthLastX = e.clientX;
+      earthX += dx;
+      earthVel = clamp(dx, -40, 40);            // 记录速度用于惯性
+      applyEarth();
+      lastInteract = Date.now();
+    });
+    const endEarthDrag = () => {
+      if (!earthDragging) return;
+      earthDragging = false;
+      earthEl.classList.remove('is-dragging');
+      earthVel = clamp(earthVel, -28, 28);
+    };
+    earthEl.addEventListener('pointerup', endEarthDrag);
+    earthEl.addEventListener('pointercancel', endEarthDrag);
+    earthEl.addEventListener('pointerleave', () => { if (earthDragging) endEarthDrag(); });
+    applyEarth();
+  }
+
+  /* ---------------------------------------------------------
      五、机器人播报
      --------------------------------------------------------- */
   const robot = $('#robot');
@@ -1988,6 +2041,13 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
     }
     if (ringDirty) { updateRing(); ringDirty = false; }
 
+    // 地球：松手后的惯性滚动
+    if (!earthDragging && Math.abs(earthVel) > 0.05) {
+      earthX += earthVel * dt * 60;
+      earthVel *= Math.pow(0.935, dt * 60);
+      applyEarth();
+    }
+
     // 空闲轮巡
     if (!dragging && !speaking && Date.now() - lastInteract > 14000) {
       target = Math.round(target) + 1;
@@ -2017,18 +2077,21 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
       const r = $('#app').getBoundingClientRect();
       const nx = (e.clientX - r.left) / r.width - 0.5;
       const ny = (e.clientY - r.top) / r.height - 0.5;
-      if (earth) earth.style.transform = `translate3d(${(-nx * 20).toFixed(1)}px,${(-ny * 10).toFixed(1)}px,0)`;
+      // 拖动地球时不做视差，避免和手动旋转打架
+      if (earth && !earthDragging) {
+        earth.style.transform = `translate3d(${(-nx * 20).toFixed(1)}px,${(-ny * 10).toFixed(1)}px,0)`;
+      }
       if (orbit) orbit.style.transform = `rotate(-7deg) translate3d(${(-nx * 14).toFixed(1)}px,0,0)`;
     });
 
     // 开场提示
-    setTimeout(() => toast('拖动圆环切换版块 · 点击中央卡片开始播报'), 2600);
+    setTimeout(() => toast('拖动地球可旋转 · 拖动圆环切换版块 · 点击卡片播报'), 2600);
   }
 
   let rt = 0;
   window.addEventListener('resize', () => {
     clearTimeout(rt);
-    rt = setTimeout(() => { resizeStars(); ringDirty = true; }, 160);
+    rt = setTimeout(() => { resizeStars(); applyEarth(); ringDirty = true; }, 160);
   });
 
   start();

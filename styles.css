@@ -127,18 +127,23 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
   100%{left:98%;opacity:0;}
 }
 
-/* ---------- 地球：NASA 卫星贴图 + 横向滚动模拟自转 ----------
+/* ---------- 地球：NASA 卫星贴图，手动拖动旋转 ----------
    整个球体完整显示、屏幕正中间（类似 Google Earth 的全球视角）。
    贴图横向 2×球宽（360° 经度）、纵向 1×球高（南北纬 90°~-90°），
-   background-position-x: -28.6% 让初始正对约东经 13°（非洲/大西洋）。 */
+   background-position-x: -28.6% 让初始正对约东经 13°（非洲/大西洋）。
+   自转由 app.js 里拖动地球的位移（transform）驱动，不再自动播放。 */
 .earth{
   --globe:clamp(320px, 62vh, 760px);
   position:absolute;
   left:calc(50% - var(--globe) / 2);
   top:calc(50% - var(--globe) / 2);
   width:var(--globe);height:var(--globe);
-  z-index:1;pointer-events:none;
+  z-index:1;
+  pointer-events:auto;cursor:grab;
+  touch-action:none;
+  -webkit-user-select:none;user-select:none;
 }
+.earth.is-dragging{cursor:grabbing;}
 .earth__ball{
   position:absolute;inset:0;border-radius:50%;overflow:hidden;
   background:#061024;
@@ -149,7 +154,6 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
   background-size:50% 100%;
   background-position:0% 0%;
   will-change:transform;
-  animation:earthSlide 110s linear infinite;
 }
 .earth__tex{
   background-image:url('./assets/earth-map.jpg');
@@ -159,12 +163,6 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
   background-image:url('./assets/earth-clouds.png');
   background-position-x:-18%;
   opacity:.85;
-  animation-duration:88s;
-}
-/* 一次滚动恰好等于一张贴图宽度，无缝循环 */
-@keyframes earthSlide{
-  from{transform:translate3d(0,0,0);}
-  to{transform:translate3d(-50%,0,0);}
 }
 .earth__shade{
   position:absolute;inset:0;border-radius:50%;

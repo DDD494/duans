@@ -540,6 +540,61 @@
   });
 
   /* ---------------------------------------------------------
+     四·五、地球：手动拖动旋转（带惯性，横向无缝循环）
+     --------------------------------------------------------- */
+  const earthEl = $('.earth');
+  const earthTex = $('.earth__tex');
+  const earthCloud = $('.earth__cloud');
+  let earthX = 0;            // 当前横向位移（px，正数 = 贴图向右）
+  let earthVel = 0;          // 松手后的惯性（px / 帧@60fps）
+  let earthDragging = false;
+  let earthLastX = 0;
+
+  // 一张贴图 = 2×球宽 = 360° 经度
+  function earthTile() {
+    const w = earthEl ? earthEl.getBoundingClientRect().width : 0;
+    return Math.max(1, w * 2);
+  }
+
+  function applyEarth() {
+    if (!earthTex) return;
+    const t = earthTile();
+    const tx = ((earthX % t) + t) % t - t;      // 归一化到 [-t, 0)，保证球面始终被铺满
+    const str = `translate3d(${tx.toFixed(2)}px,0,0)`;
+    earthTex.style.transform = str;
+    if (earthCloud) earthCloud.style.transform = str;
+  }
+
+  if (earthEl) {
+    earthEl.addEventListener('pointerdown', (e) => {
+      earthDragging = true;
+      earthVel = 0;
+      earthLastX = e.clientX;
+      earthEl.classList.add('is-dragging');
+      if (earthEl.setPointerCapture) earthEl.setPointerCapture(e.pointerId);
+    });
+    earthEl.addEventListener('pointermove', (e) => {
+      if (!earthDragging) return;
+      const dx = e.clientX - earthLastX;
+      earthLastX = e.clientX;
+      earthX += dx;
+      earthVel = clamp(dx, -40, 40);            // 记录速度用于惯性
+      applyEarth();
+      lastInteract = Date.now();
+    });
+    const endEarthDrag = () => {
+      if (!earthDragging) return;
+      earthDragging = false;
+      earthEl.classList.remove('is-dragging');
+      earthVel = clamp(earthVel, -28, 28);
+    };
+    earthEl.addEventListener('pointerup', endEarthDrag);
+    earthEl.addEventListener('pointercancel', endEarthDrag);
+    earthEl.addEventListener('pointerleave', () => { if (earthDragging) endEarthDrag(); });
+    applyEarth();
+  }
+
+  /* ---------------------------------------------------------
      五、机器人播报
      --------------------------------------------------------- */
   const robot = $('#robot');
@@ -900,6 +955,13 @@
     }
     if (ringDirty) { updateRing(); ringDirty = false; }
 
+    // 地球：松手后的惯性滚动
+    if (!earthDragging && Math.abs(earthVel) > 0.05) {
+      earthX += earthVel * dt * 60;
+      earthVel *= Math.pow(0.935, dt * 60);
+      applyEarth();
+    }
+
     // 空闲轮巡
     if (!dragging && !speaking && Date.now() - lastInteract > 14000) {
       target = Math.round(target) + 1;
@@ -929,18 +991,21 @@
       const r = $('#app').getBoundingClientRect();
       const nx = (e.clientX - r.left) / r.width - 0.5;
       const ny = (e.clientY - r.top) / r.height - 0.5;
-      if (earth) earth.style.transform = `translate3d(${(-nx * 20).toFixed(1)}px,${(-ny * 10).toFixed(1)}px,0)`;
+      // 拖动地球时不做视差，避免和手动旋转打架
+      if (earth && !earthDragging) {
+        earth.style.transform = `translate3d(${(-nx * 20).toFixed(1)}px,${(-ny * 10).toFixed(1)}px,0)`;
+      }
       if (orbit) orbit.style.transform = `rotate(-7deg) translate3d(${(-nx * 14).toFixed(1)}px,0,0)`;
     });
 
     // 开场提示
-    setTimeout(() => toast('拖动圆环切换版块 · 点击中央卡片开始播报'), 2600);
+    setTimeout(() => toast('拖动地球可旋转 · 拖动圆环切换版块 · 点击卡片播报'), 2600);
   }
 
   let rt = 0;
   window.addEventListener('resize', () => {
     clearTimeout(rt);
-    rt = setTimeout(() => { resizeStars(); ringDirty = true; }, 160);
+    rt = setTimeout(() => { resizeStars(); applyEarth(); ringDirty = true; }, 160);
   });
 
   start();
