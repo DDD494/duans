@@ -129,12 +129,15 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
 }
 
 /* ---------- 地球：NASA 卫星贴图 + 横向滚动模拟自转 ----------
-   球体直径 250vh，屏幕只露出顶部约 40vh（地平线弧）。
-   贴图横向 2×球宽（360° 经度），纵向 120%（把南北纬压扁一点，像是俯视球面），
-   定位让画面顶边落在贴图 22% 处 = 北纬约 50°，所以看到的是中纬度大陆，不是极地。 */
+   整个球体完整显示、屏幕正中间（类似 Google Earth 的全球视角）。
+   贴图横向 2×球宽（360° 经度）、纵向 1×球高（南北纬 90°~-90°），
+   background-position-x: -28.6% 让初始正对约东经 13°（非洲/大西洋）。 */
 .earth{
-  position:absolute;left:50%;bottom:-210vh;
-  width:250vh;height:250vh;margin-left:-125vh;
+  --globe:clamp(320px, 62vh, 760px);
+  position:absolute;
+  left:calc(50% - var(--globe) / 2);
+  top:calc(50% - var(--globe) / 2);
+  width:var(--globe);height:var(--globe);
   z-index:1;pointer-events:none;
 }
 .earth__ball{
@@ -144,16 +147,20 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
 .earth__tex,.earth__cloud{
   position:absolute;left:0;top:0;width:400%;height:100%;
   background-repeat:repeat-x;
-  background-size:50% 120%;
-  background-position:0% 133%;
+  background-size:50% 100%;
+  background-position:0% 0%;
   will-change:transform;
-  animation:earthSlide 320s linear infinite;
+  animation:earthSlide 110s linear infinite;
 }
-.earth__tex{background-image:url('./assets/earth-map.jpg');}
+.earth__tex{
+  background-image:url('./assets/earth-map.jpg');
+  background-position-x:-28.6%;
+}
 .earth__cloud{
   background-image:url('./assets/earth-clouds.png');
+  background-position-x:-18%;
   opacity:.5;mix-blend-mode:screen;
-  animation-duration:255s;
+  animation-duration:88s;
 }
 /* 一次滚动恰好等于一张贴图宽度，无缝循环 */
 @keyframes earthSlide{
@@ -163,17 +170,17 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
 .earth__shade{
   position:absolute;inset:0;border-radius:50%;
   background:
-    radial-gradient(120% 90% at 30% 20%, rgba(200,235,255,.16), transparent 46%),
-    linear-gradient(180deg, rgba(3,8,20,.04) 0%, rgba(3,8,20,.22) 14%, rgba(2,6,16,.62) 46%, rgba(1,4,12,.88) 100%);
+    radial-gradient(115% 115% at 30% 24%, rgba(200,235,255,.20), transparent 48%),
+    radial-gradient(140% 140% at 80% 84%, rgba(0,2,10,.72), transparent 58%);
   box-shadow:
-    inset 0 3vh 8vh -2vh rgba(170,225,255,.45),
-    inset -34vh -38vh 70vh rgba(0,0,10,.9),
-    inset 18vh 20vh 46vh rgba(90,160,255,.10);
+    inset -14vh -12vh 26vh -6vh rgba(0,2,10,.85),
+    inset 7vh 7vh 16vh -6vh rgba(150,215,255,.32),
+    0 0 14vh rgba(60,150,255,.22);
 }
 .earth__atmo{
-  position:absolute;inset:-2%;border-radius:50%;
-  background:radial-gradient(circle, transparent 68%, rgba(120,200,255,.34) 76%, rgba(90,170,255,.12) 82%, transparent 90%);
-  filter:blur(16px);
+  position:absolute;inset:-3%;border-radius:50%;
+  background:radial-gradient(circle, transparent 62%, rgba(130,205,255,.40) 71%, rgba(90,170,255,.14) 78%, transparent 88%);
+  filter:blur(14px);
 }
 
 /* ---------- 机械科技风边框 ---------- */
@@ -227,7 +234,7 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
     inset 0 0 0 1px rgba(150,210,255,.18),
     inset 0 0 30px rgba(0,0,0,.6),
     inset 0 0 70px rgba(20,60,140,.16),
-    inset 0 -14vh 26vh -8vh rgba(0,0,0,.72);
+    inset 0 -8vh 18vh -8vh rgba(0,0,0,.5);
 }
 
 .frame__corner{
