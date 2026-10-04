@@ -159,7 +159,7 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
 .earth__cloud{
   background-image:url('./assets/earth-clouds.png');
   background-position-x:-18%;
-  opacity:.5;mix-blend-mode:screen;
+  opacity:.85;
   animation-duration:88s;
 }
 /* 一次滚动恰好等于一张贴图宽度，无缝循环 */
@@ -170,12 +170,16 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
 .earth__shade{
   position:absolute;inset:0;border-radius:50%;
   background:
-    radial-gradient(115% 115% at 30% 24%, rgba(200,235,255,.20), transparent 48%),
-    radial-gradient(140% 140% at 80% 84%, rgba(0,2,10,.72), transparent 58%);
+    /* 受光面：光来自左上方 */
+    radial-gradient(80% 80% at 30% 24%, rgba(255,255,255,.26), rgba(255,255,255,.06) 34%, transparent 58%),
+    /* 背光面：右下入夜 */
+    radial-gradient(115% 115% at 88% 86%, rgba(0,3,14,.86), rgba(0,4,18,.42) 38%, transparent 68%),
+    /* 大气蓝雾：集中在球体边缘，模拟真实拍摄的散射 */
+    radial-gradient(circle at 50% 50%, transparent 56%, rgba(110,180,255,.16) 72%, rgba(130,195,255,.36) 84%, rgba(90,150,255,.16) 92%, transparent 100%);
   box-shadow:
-    inset -14vh -12vh 26vh -6vh rgba(0,2,10,.85),
-    inset 7vh 7vh 16vh -6vh rgba(150,215,255,.32),
-    0 0 14vh rgba(60,150,255,.22);
+    inset -10vh -8vh 20vh -8vh rgba(0,2,10,.5),
+    inset 7vh 7vh 16vh -8vh rgba(170,225,255,.22),
+    0 0 14vh rgba(60,150,255,.24);
 }
 .earth__atmo{
   position:absolute;inset:-3%;border-radius:50%;
