@@ -16,6 +16,7 @@ styles.css            全部样式与动画
 app.js                全部交互逻辑
 standalone.html       单文件版（样式 + 脚本内联）
 assets/
+  sky-milkyway.jpg    真实银河星空底图（ESO/S. Brunier，CC BY 4.0）
   earth-map.jpg       地球等距圆柱贴图（NASA Blue Marble，公有领域，经 Wikimedia Commons 获取）
   earth-clouds.png    真实卫星云层贴图（Solar System Scope，CC BY 4.0，源自 NASA 卫星数据）
   podcast-bot.png     机器人（透明底抠图，840 × 1169）
@@ -24,9 +25,13 @@ assets/
   shuihu.png / zhizhu.png   上面两张的原图
 ```
 
-素材来源与授权：地球表面贴图为 NASA Blue Marble（公有领域）；云层贴图来自
-[Solar System Scope](https://www.solarsystemscope.com/textures/)（CC BY 4.0，基于 NASA 卫星数据）。
-如用于商业发布，请在页面或说明中保留这两项署名。
+素材来源与授权：
+
+- 星空底图：ESO/S. Brunier 的银河全景（CC BY 4.0），经 Wikimedia Commons 获取
+- 地球表面：NASA Blue Marble（公有领域），已重新调色为灰蓝色调
+- 云层：[Solar System Scope](https://www.solarsystemscope.com/textures/)（CC BY 4.0，基于 NASA 卫星数据）
+
+如用于商业发布，请保留以上署名。
 
 ## 页面构成
 
