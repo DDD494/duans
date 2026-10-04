@@ -17,12 +17,16 @@ app.js                全部交互逻辑
 standalone.html       单文件版（样式 + 脚本内联）
 assets/
   earth-map.jpg       地球等距圆柱贴图（NASA Blue Marble，公有领域，经 Wikimedia Commons 获取）
-  earth-clouds.png    程序生成的云层贴图（横向无缝，用于叠加云影）
+  earth-clouds.png    真实卫星云层贴图（Solar System Scope，CC BY 4.0，源自 NASA 卫星数据）
   podcast-bot.png     机器人（透明底抠图，840 × 1169）
   shuihu-cut.png      浇水壶（透明底抠图）
   zhizhu-cut.png      小植株（透明底抠图）
   shuihu.png / zhizhu.png   上面两张的原图
 ```
+
+素材来源与授权：地球表面贴图为 NASA Blue Marble（公有领域）；云层贴图来自
+[Solar System Scope](https://www.solarsystemscope.com/textures/)（CC BY 4.0，基于 NASA 卫星数据）。
+如用于商业发布，请在页面或说明中保留这两项署名。
 
 ## 页面构成
 
