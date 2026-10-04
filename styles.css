@@ -148,6 +148,14 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
   position:absolute;inset:0;border-radius:50%;overflow:hidden;
   background:#061024;
 }
+.earth__canvas{
+  position:absolute;inset:0;width:100%;height:100%;display:block;
+}
+/* 3D 渲染可用时隐藏回退图层与平面遮罩 */
+.earth--3d .earth__tex,
+.earth--3d .earth__cloud,
+.earth--3d .earth__shade{display:none;}
+.earth:not(.earth--3d) .earth__canvas{display:none;}
 .earth__tex,.earth__cloud{
   position:absolute;left:0;top:0;width:400%;height:100%;
   background-repeat:repeat-x;

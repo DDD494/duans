@@ -157,6 +157,14 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
   position:absolute;inset:0;border-radius:50%;overflow:hidden;
   background:#061024;
 }
+.earth__canvas{
+  position:absolute;inset:0;width:100%;height:100%;display:block;
+}
+/* 3D 渲染可用时隐藏回退图层与平面遮罩 */
+.earth--3d .earth__tex,
+.earth--3d .earth__cloud,
+.earth--3d .earth__shade{display:none;}
+.earth:not(.earth--3d) .earth__canvas{display:none;}
 .earth__tex,.earth__cloud{
   position:absolute;left:0;top:0;width:400%;height:100%;
   background-repeat:repeat-x;
@@ -829,6 +837,9 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
     <!-- ============ 地球（卫星贴图 · 自转） ============ -->
     <div class="earth" aria-hidden="true">
       <div class="earth__ball">
+        <!-- 真 3D：逐像素球面渲染（JS 可用时生效） -->
+        <canvas class="earth__canvas" id="earthCanvas" width="640" height="640"></canvas>
+        <!-- 回退：本地打开时画布可能被安全策略限制，退回贴图滚动方案 -->
         <div class="earth__tex"></div>
         <div class="earth__cloud"></div>
       </div>
@@ -1626,32 +1637,186 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
   });
 
   /* ---------------------------------------------------------
-     四·五、地球：手动拖动旋转（带惯性，横向无缝循环）
+     四·五、地球：逐像素 3D 球面渲染 + 拖动旋转
+     —— 正交投影，每个像素按球面法线取经纬度取样贴图，
+        所以大陆在球面边缘会被正确压缩，看起来是真正的立体球
      --------------------------------------------------------- */
   const earthEl = $('.earth');
   const earthTex = $('.earth__tex');
   const earthCloud = $('.earth__cloud');
-  let earthX = 0;            // 当前横向位移（px，正数 = 贴图向右）
-  let earthVel = 0;          // 松手后的惯性（px / 帧@60fps）
+  const earthCanvas = $('#earthCanvas');
+  const earthCtx = earthCanvas ? earthCanvas.getContext('2d') : null;
+
+  const TEX_W = 1536, TEX_H = 768;      // 地表贴图（球面取样）
+  const CLD_W = 768, CLD_H = 384;       // 云层贴图
+  const LIGHT = (() => {                 // 光照方向（屏幕坐标：x 右、y 下、z 朝观察者）
+    const l = [-0.42, -0.52, 0.75];
+    const n = Math.hypot(l[0], l[1], l[2]);
+    return [l[0] / n, l[1] / n, l[2] / n];
+  })();
+
+  let earth3D = false;                   // 3D 是否可用
+  const EARTH_ROT0 = (13 / 360) * TEX_W;
+  let earthRot = EARTH_ROT0;             // 初始正对东经 ~13°（非洲/大西洋）
+  let earthVel = 0;                      // 惯性（贴图列 / 帧@60fps）
   let earthDragging = false;
   let earthLastX = 0;
+  let earthRotPerPx = TEX_W / (Math.PI * 640);
+  let eSize = 0, eN = 0;
+  let eIdx = null, eU = null, eRow = null, eCRow = null, eBright = null, eRim = null;
+  let eImage = null;
+  let texSurf = null, texCloud = null;
 
-  // 一张贴图 = 2×球宽 = 360° 经度
-  function earthTile() {
-    const w = earthEl ? earthEl.getBoundingClientRect().width : 0;
-    return Math.max(1, w * 2);
+  // 读取贴图像素（file:// 下画布可能被污染，则返回 null 走回退方案）
+  function loadPixels(url, w, h) {
+    return new Promise((resolve) => {
+      const im = new Image();
+      im.onload = () => {
+        try {
+          const cv = document.createElement('canvas');
+          cv.width = w; cv.height = h;
+          const c = cv.getContext('2d');
+          c.drawImage(im, 0, 0, w, h);
+          resolve(c.getImageData(0, 0, w, h));
+        } catch (err) {
+          resolve(null);
+        }
+      };
+      im.onerror = () => resolve(null);
+      im.src = url;
+    });
   }
 
+  // 预计算：每个球面像素的贴图坐标、光照、边缘散射
+  function buildEarthTables(size) {
+    const R = size / 2;
+    const idx = [], us = [], rows = [], crows = [], brs = [], rms = [];
+    for (let y = 0; y < size; y++) {
+      for (let x = 0; x < size; x++) {
+        const nx = (x + 0.5 - R) / R;
+        const ny = (y + 0.5 - R) / R;
+        const d2 = nx * nx + ny * ny;
+        if (d2 >= 1) continue;
+        const nz = Math.sqrt(1 - d2);
+        const lat = Math.asin(-ny);                 // 屏幕上方 = 北极
+        const lon = Math.atan2(nx, nz);             // 中心经线为 0
+        const v = Math.round((0.5 - lat / Math.PI) * (TEX_H - 1));
+        const row = Math.min(TEX_H - 1, Math.max(0, v)) * TEX_W;
+        const crow = Math.min(CLD_H - 1, Math.max(0, Math.round(v / (TEX_H - 1) * (CLD_H - 1)))) * CLD_W;
+        const dot = nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2];
+        const br = 0.13 + 0.95 * Math.max(0, dot);
+        idx.push((y * size + x) * 4);
+        us.push((lon / (2 * Math.PI) + 0.5) * TEX_W);
+        rows.push(row);
+        crows.push(crow);
+        brs.push(br);
+        rms.push(Math.pow(1 - nz, 3) * (0.3 + 0.7 * br));
+      }
+    }
+    eIdx = Uint32Array.from(idx);
+    eU = Float32Array.from(us);
+    eRow = Uint32Array.from(rows);
+    eCRow = Uint32Array.from(crows);
+    eBright = Float32Array.from(brs);
+    eRim = Float32Array.from(rms);
+    eN = eIdx.length;
+    eSize = size;
+    eImage = earthCtx.createImageData(size, size);
+    earthRotPerPx = TEX_W / (Math.PI * size);
+  }
+
+  // 逐像素球面渲染
+  function renderEarth() {
+    if (!earth3D || !eImage) return;
+    const out = eImage.data;
+    const s = texSurf.data;
+    const c = texCloud ? texCloud.data : null;
+    const rot = earthRot;
+    const cScale = CLD_W / TEX_W;
+    for (let i = 0; i < eN; i++) {
+      let u = eU[i] + rot;
+      u -= Math.floor(u / TEX_W) * TEX_W;          // 归一到 [0, TEX_W)
+      const u0 = u | 0;
+      const fu = u - u0;
+      const u1 = u0 + 1 >= TEX_W ? 0 : u0 + 1;
+      const row = eRow[i];
+      const a0 = (row + u0) << 2;
+      const a1 = (row + u1) << 2;
+      const f0 = 1 - fu;
+      const b = eBright[i];
+      let r = (s[a0] * f0 + s[a1] * fu) * b;
+      let g = (s[a0 + 1] * f0 + s[a1 + 1] * fu) * b;
+      let bl = (s[a0 + 2] * f0 + s[a1 + 2] * fu) * b;
+
+      if (c) {                                     // 云层（同球面坐标）
+        let cu = u * cScale;
+        cu -= Math.floor(cu / CLD_W) * CLD_W;
+        const c0 = cu | 0;
+        const cf = cu - c0;
+        const c1 = c0 + 1 >= CLD_W ? 0 : c0 + 1;
+        const crow = eCRow[i];
+        const al = (c[((crow + c0) << 2) + 3] * (1 - cf) + c[((crow + c1) << 2) + 3] * cf) / 255;
+        if (al > 0.004) {
+          const k = al;
+          const cw = 255 * b;
+          r = r * (1 - k) + cw * k * 0.96;
+          g = g * (1 - k) + cw * k * 0.97;
+          bl = bl * (1 - k) + cw * k;
+        }
+      }
+
+      const rim = eRim[i];
+      const p = eIdx[i];
+      out[p] = r + rim * 26;
+      out[p + 1] = g + rim * 44;
+      out[p + 2] = bl + rim * 78;
+      out[p + 3] = 255;
+    }
+    earthCtx.putImageData(eImage, 0, 0);
+  }
+
+  // 统一入口：3D 可用时重绘，否则退回 CSS 贴图滚动
   function applyEarth() {
-    if (!earthTex) return;
-    const t = earthTile();
-    const tx = ((earthX % t) + t) % t - t;      // 归一化到 [-t, 0)，保证球面始终被铺满
+    if (earth3D) { renderEarth(); return; }
+    if (!earthTex || !earthEl) return;
+    const t = Math.max(1, earthEl.getBoundingClientRect().width * 2);
+    // 回退方案的初始朝向已由 CSS 的 background-position-x 决定，这里只叠加增量
+    const delta = -((earthRot - EARTH_ROT0) / TEX_W) * t;
+    const tx = ((delta % t) + t) % t - t;
     const str = `translate3d(${tx.toFixed(2)}px,0,0)`;
     earthTex.style.transform = str;
     if (earthCloud) earthCloud.style.transform = str;
   }
 
-  if (earthEl) {
+  function sizeEarthCanvas() {
+    if (!earthCanvas || !earthEl) return 640;
+    const cssW = earthEl.getBoundingClientRect().width || 520;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    return Math.round(clamp(cssW * dpr, 380, 700));
+  }
+
+  function initEarth3D() {
+    if (!earthCanvas || !earthCtx || !earthEl) return;
+    const size = sizeEarthCanvas();
+    earthCanvas.width = size;
+    earthCanvas.height = size;
+    buildEarthTables(size);
+    earth3D = true;
+    earthEl.classList.add('earth--3d');
+    renderEarth();
+  }
+
+  if (earthCanvas && earthCtx && earthEl) {
+    Promise.all([
+      loadPixels('./assets/earth-map.jpg', TEX_W, TEX_H),
+      loadPixels('./assets/earth-clouds.png', CLD_W, CLD_H)
+    ]).then((res) => {
+      texSurf = res[0];
+      texCloud = res[1];
+      if (texSurf) initEarth3D();
+      else applyEarth();          // 本地 file:// 被限制时退回贴图方案
+    });
+
     earthEl.addEventListener('pointerdown', (e) => {
       earthDragging = true;
       earthVel = 0;
@@ -1663,8 +1828,9 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
       if (!earthDragging) return;
       const dx = e.clientX - earthLastX;
       earthLastX = e.clientX;
-      earthX += dx;
-      earthVel = clamp(dx, -40, 40);            // 记录速度用于惯性
+      const d = -dx * earthRotPerPx;              // 向右拖 → 表面右移
+      earthRot += d;
+      earthVel = clamp(d, -60, 60);
       applyEarth();
       lastInteract = Date.now();
     });
@@ -1672,12 +1838,11 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
       if (!earthDragging) return;
       earthDragging = false;
       earthEl.classList.remove('is-dragging');
-      earthVel = clamp(earthVel, -28, 28);
+      earthVel = clamp(earthVel, -40, 40);
     };
     earthEl.addEventListener('pointerup', endEarthDrag);
     earthEl.addEventListener('pointercancel', endEarthDrag);
     earthEl.addEventListener('pointerleave', () => { if (earthDragging) endEarthDrag(); });
-    applyEarth();
   }
 
   /* ---------------------------------------------------------
@@ -2043,7 +2208,7 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
 
     // 地球：松手后的惯性滚动
     if (!earthDragging && Math.abs(earthVel) > 0.05) {
-      earthX += earthVel * dt * 60;
+      earthRot += earthVel * dt * 60;
       earthVel *= Math.pow(0.935, dt * 60);
       applyEarth();
     }
@@ -2091,7 +2256,11 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
   let rt = 0;
   window.addEventListener('resize', () => {
     clearTimeout(rt);
-    rt = setTimeout(() => { resizeStars(); applyEarth(); ringDirty = true; }, 160);
+    rt = setTimeout(() => {
+      resizeStars();
+      if (earth3D) initEarth3D(); else applyEarth();
+      ringDirty = true;
+    }, 160);
   });
 
   start();

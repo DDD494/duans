@@ -24,6 +24,9 @@
     <!-- ============ 地球（卫星贴图 · 自转） ============ -->
     <div class="earth" aria-hidden="true">
       <div class="earth__ball">
+        <!-- 真 3D：逐像素球面渲染（JS 可用时生效） -->
+        <canvas class="earth__canvas" id="earthCanvas" width="640" height="640"></canvas>
+        <!-- 回退：本地打开时画布可能被安全策略限制，退回贴图滚动方案 -->
         <div class="earth__tex"></div>
         <div class="earth__cloud"></div>
       </div>
