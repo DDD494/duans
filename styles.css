@@ -133,7 +133,7 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
    background-position-x: -28.6% 让初始正对约东经 13°（非洲/大西洋）。
    自转由 app.js 里拖动地球的位移（transform）驱动，不再自动播放。 */
 .earth{
-  --globe:clamp(320px, 62vh, 760px);
+  --globe:clamp(160px, 31vh, 380px);
   position:absolute;
   left:calc(50% - var(--globe) / 2);
   top:calc(50% - var(--globe) / 2);

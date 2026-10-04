@@ -550,8 +550,8 @@
   const earthCanvas = $('#earthCanvas');
   const earthCtx = earthCanvas ? earthCanvas.getContext('2d') : null;
 
-  const TEX_W = 1536, TEX_H = 768;      // 地表贴图（球面取样）
-  const CLD_W = 768, CLD_H = 384;       // 云层贴图
+  const TEX_W = 2560, TEX_H = 1280;     // 地表贴图（球面取样，配合高分辨率渲染）
+  const CLD_W = 1280, CLD_H = 640;      // 云层贴图
   const LIGHT = (() => {                 // 光照方向（屏幕坐标：x 右、y 下、z 朝观察者）
     const l = [-0.42, -0.52, 0.75];
     const n = Math.hypot(l[0], l[1], l[2]);
@@ -695,7 +695,8 @@
     if (!earthCanvas || !earthEl) return 640;
     const cssW = earthEl.getBoundingClientRect().width || 520;
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    return Math.round(clamp(cssW * dpr, 380, 700));
+    // 内部渲染分辨率：至少 1:1 对应设备像素，并按上限做超采样，保证高分屏也清晰
+    return Math.round(clamp(cssW * dpr * 1.15, 420, 900));
   }
 
   function initEarth3D() {

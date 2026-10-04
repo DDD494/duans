@@ -55,7 +55,8 @@ assets/
 
 - 新闻版块、顺序、图片、文案：`app.js` 顶部的 `CATS` 数组（`img` 是该版块卡片图片，加载失败会自动回落到矢量插画）
 - 配色、尺寸、动画节奏：`styles.css`
-- 地球大小与位置：`.earth` 的 `--globe`（球体直径，当前 `clamp(320px, 62vh, 760px)`）与 `left/top` 居中公式
+- 地球大小与位置：`.earth` 的 `--globe`（球体直径，当前 `clamp(160px, 31vh, 380px)`）与 `left/top` 居中公式
+- 渲染分辨率：`app.js` 的 `sizeEarthCanvas()`（当前 `clamp(球体宽 × DPR × 1.15, 420, 900)`，即在高分屏上按设备像素超采样，最高 900×900）
 - 地球初始朝向：`app.js` 里的 `EARTH_ROT0`（当前 13° ≈ 正对东经 13°，非洲/大西洋）
 - 3D 渲染：`app.js` 的「四·五」段——`buildEarthTables()` 预计算每个像素的贴图坐标/光照，`renderEarth()` 逐帧取样；`TEX_W/TEX_H`、`CLD_W/CLD_H` 是取样用的贴图分辨率，`LIGHT` 是光照方向，`0.13 + 0.95 * max(0, dot)` 是明暗曲线
 - 拖动灵敏度与惯性：拖动时 `earthRot -= dx * earthRotPerPx`，主循环里 `earthVel *= Math.pow(0.935, …)` 做阻尼
