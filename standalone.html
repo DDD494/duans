@@ -2236,17 +2236,14 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
     jar.classList.add('show-tag');
     setTimeout(() => jar.classList.remove('show-tag'), 5200);
 
-    // 视差
-    const earth = $('.earth');
+    // 视差：只作用于轨道线。地球必须保持完全固定（不跟随鼠标位移），
+    // 否则会被视差推着左右晃动；它只在拖动时转动。
     const orbit = $('.orbit-line');
+    const earth = $('.earth');
+    if (earth) earth.style.transform = 'none';
     $('#app').addEventListener('pointermove', (e) => {
       const r = $('#app').getBoundingClientRect();
       const nx = (e.clientX - r.left) / r.width - 0.5;
-      const ny = (e.clientY - r.top) / r.height - 0.5;
-      // 拖动地球时不做视差，避免和手动旋转打架
-      if (earth && !earthDragging) {
-        earth.style.transform = `translate3d(${(-nx * 20).toFixed(1)}px,${(-ny * 10).toFixed(1)}px,0)`;
-      }
       if (orbit) orbit.style.transform = `rotate(-7deg) translate3d(${(-nx * 14).toFixed(1)}px,0,0)`;
     });
 
