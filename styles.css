@@ -687,7 +687,7 @@ button{font-family:inherit;color:inherit;background:none;border:0;cursor:pointer
   right:calc(var(--fw) + clamp(18px, 5.5vw, 110px));
   bottom:calc(var(--fw) + 4px);
   display:flex;align-items:flex-end;
-  gap:clamp(6px, 1.2vw, 20px);
+  gap:clamp(20px, 3.2vw, 54px);   /* 间距调大：浇水壶相对植株向左移 */
   z-index:47;
 }
 

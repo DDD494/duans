@@ -932,7 +932,7 @@
     can.style.setProperty('--pour-lift', lift.toFixed(1) + 'px');
     can.classList.add('is-pouring');
     jar.classList.add('is-watering');
-    sfxWater();
+    playWaterSfx();
 
     // 等壶身抬起、向右倾倒到位后再取点：
     // getBoundingClientRect 会带上 transform，所以拿到的是倾斜后的真实位置
@@ -1054,6 +1054,43 @@
   function sfxWater() {
     noiseBurst(1.25, 2400, 700, 0.14);
     tone(300, 0.5, 'sine', 0.02, 0.1);
+  }
+
+  /* 真实浇水音效：Wikimedia Commons 的公有领域录音「Pouring water in mug in sink」
+     （earthcalling，Public domain）。浏览器不支持 Ogg 时自动回退到上面的合成音。 */
+  const WATER_SFX_SRC = './assets/water-pour.ogg';
+  let waterAudio = null;
+  let waterSfxPlayable = true;
+
+  function playWaterSfx() {
+    if (!soundOn) return;
+    if (!waterSfxPlayable) { sfxWater(); return; }
+    try {
+      if (!waterAudio) {
+        waterAudio = new Audio(WATER_SFX_SRC);
+        waterAudio.preload = 'auto';
+        waterAudio.volume = 0.55;
+        waterAudio.addEventListener('error', () => { waterSfxPlayable = false; });
+      }
+      try { waterAudio.currentTime = 0.25; } catch (e) { /* 还没加载完就算了 */ }
+      const pr = waterAudio.play();
+      if (pr && pr.catch) {
+        pr.catch(() => { waterSfxPlayable = false; sfxWater(); });
+      }
+      // 倒水动作约 1.4 秒，这里放 2 秒后收尾，避免拖长
+      setTimeout(() => {
+        if (!waterAudio) return;
+        try {
+          waterAudio.volume = Math.max(0, waterAudio.volume - 0.2);
+          waterAudio.pause();
+          waterAudio.currentTime = 0;
+          waterAudio.volume = 0.55;
+        } catch (e) { /* 忽略 */ }
+      }, 2000);
+    } catch (e) {
+      waterSfxPlayable = false;
+      sfxWater();
+    }
   }
 
   soundBtn.addEventListener('click', () => {

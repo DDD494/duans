@@ -23,6 +23,7 @@ assets/
   shuihu-cut.png      浇水壶（透明底抠图）
   zhizhu-cut.png      小植株（透明底抠图）
   shuihu.png / zhizhu.png   上面两张的原图
+  water-pour.ogg      浇水音效（真实录音，公有领域）
 ```
 
 素材来源与授权：
@@ -30,6 +31,7 @@ assets/
 - 星空底图：ESO/S. Brunier 的银河全景（CC BY 4.0），经 Wikimedia Commons 获取
 - 地球表面：NASA Blue Marble（公有领域），已重新调色为灰蓝色调
 - 云层：[Solar System Scope](https://www.solarsystemscope.com/textures/)（CC BY 4.0，基于 NASA 卫星数据）
+- 浇水音效：Wikimedia Commons「Pouring water in mug in sink」（earthcalling，公有领域）
 
 如用于商业发布，请保留以上署名。
 
